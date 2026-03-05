@@ -1,0 +1,263 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coach's Toolkit | Team Fundraiser</title>
+    <style>
+        /* Base Setup */
+        html, body { 
+            height: 100%; margin: 0; padding: 0; 
+            font-family: 'Segoe UI', system-ui, sans-serif; 
+            background-color: #f8f9fa; color: #333;
+            overflow-x: hidden;
+        }
+
+        .main-wrapper { 
+            display: flex; flex-direction: column; min-height: 100vh; 
+            padding: 20px; box-sizing: border-box; align-items: center; 
+        }
+
+        .content-width { width: 100%; max-width: 600px; }
+
+        /* Brand Header */
+        .brand-header { text-align: center; margin-bottom: 20px; }
+        .brand-link { text-decoration: none; color: #222; }
+        .brand-title { font-size: 2.2rem; margin: 0; font-weight: 800; }
+
+        /* Search Bar & Hide State */
+        .search-container { 
+            position: sticky; top: 0; background: #f8f9fa; 
+            z-index: 10; padding-bottom: 15px; transition: opacity 0.3s ease;
+        }
+        
+        .searching-hidden { display: none !important; }
+
+        .input-wrapper { position: relative; width: 100%; }
+
+        #searchInput { 
+            width: 100%; padding: 16px 20px; 
+            border: 2px solid #4285f4; border-radius: 12px; 
+            font-size: 16px; outline: none; box-sizing: border-box; 
+            box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+        }
+
+        /* Pill Tags Styling */
+        .pill {
+            display: inline-block; padding: 4px 10px; border-radius: 20px;
+            font-size: 11px; font-weight: 800; text-transform: uppercase;
+            letter-spacing: 0.5px; width: fit-content;
+            margin: 0 4px 8px 0;
+        }
+        .pill-t-ball { background: #ffebee; color: #c62828; }
+        .pill-caps { background: #e8f5e9; color: #2e7d32; }
+        .pill-minors { background: #e3f2fd; color: #1565c0; }
+        .pill-majors { background: #fff3e0; color: #ef6c00; }
+        .pill-intermediate { background: #f3e5f5; color: #7b1fa2; }
+
+        /* Suggestions List */
+        .suggestions { 
+            border-radius: 12px; background: white; 
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow: hidden;
+        }
+
+        .suggestion-item { 
+            padding: 15px 20px; cursor: pointer; border-bottom: 1px solid #f0f0f0; 
+            display: flex; flex-direction: column; transition: background 0.2s;
+        }
+        .suggestion-item:hover { background: #f1f7ff; }
+
+        .item-title { font-weight: bold; color: #333; font-size: 1.1rem; }
+        .item-subtitle { font-size: 0.9rem; color: #666; margin-top: 4px; }
+
+        /* Result Card with Slide-Up Animation */
+        #resultCard { 
+            display: none; position: relative; text-align: center; 
+            background: white; padding: 30px 25px; border-radius: 20px; 
+            box-shadow: 0 15px 35px rgba(0,0,0,0.1);
+            animation: slideUp 0.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) both;
+        }
+
+        @keyframes slideUp {
+            0% { transform: translateY(50px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        .close-card {
+            position: absolute; top: 15px; right: 15px; 
+            background: #f1f3f4; border: none; border-radius: 50%; 
+            width: 36px; height: 36px; cursor: pointer; 
+            display: flex; align-items: center; justify-content: center;
+        }
+
+        #pillContainer { display: flex; justify-content: center; margin-bottom: 10px; }
+
+        .card-header { margin-bottom: 20px; }
+        .card-title { font-size: 26px; margin: 0; color: #222; }
+        .card-subtitle { font-size: 16px; color: #666; margin-top: 5px; }
+
+        .promo-box {
+            background: #e8f0fe; border: 1px solid #4285f4;
+            padding: 15px; border-radius: 10px; margin-bottom: 20px;
+            font-size: 14px; color: #1967d2; text-align: left; line-height: 1.4;
+        }
+
+        .team-img { 
+            width: 100%; max-height: 400px; object-fit: contain; margin-bottom: 15px; cursor: pointer;
+        }
+
+        /* Buttons */
+        .btn { 
+            padding: 18px; border: none; border-radius: 10px; 
+            cursor: pointer; font-weight: 700; text-decoration: none; 
+            font-size: 16px; text-align: center; transition: background 0.2s;
+            display: block; width: 100%; box-sizing: border-box; margin-bottom: 12px;
+        }
+        .btn-link { background: #4285f4; color: white; }
+        .btn-share { background: #ea4335; color: white; }
+        .btn-share.success { background: #34a853 !important; }
+
+        .footer-note { font-size: 13px; color: #888; margin-top: 25px; padding-top: 15px; border-top: 1px solid #eee; }
+    </style>
+</head>
+<body>
+
+<div class="main-wrapper">
+    <div class="content-width">
+        <header class="brand-header" id="brandHeader">
+            <a href="index.html" class="brand-link"><h1 class="brand-title">Team Fundraiser</h1></a>
+        </header>
+
+        <div class="search-container" id="searchWrapper">
+            <input type="text" id="searchInput" placeholder="Search by team or coach..." autocomplete="off">
+        </div>
+
+        <div id="suggestions" class="suggestions"></div>
+
+        <article id="resultCard">
+            <button class="close-card" onclick="resetUI()">✕</button>
+            <div class="card-header">
+                <div id="pillContainer"></div>
+                <h2 id="itemName" class="card-title"></h2>
+                <div id="itemSubtitle" class="card-subtitle"></div>
+            </div>
+
+            <div class="promo-box">
+                <strong>Coach's Toolkit:</strong> Tap the QR codes below for saving/printing.
+            </div>
+            
+            <img id="itemImage" class="team-img" alt="Vertical Photo">
+            <img id="itemHorizontalImage" class="team-img" alt="Horizontal Photo">
+            
+            <a id="linkBtn" class="btn btn-link" target="_blank">View Zeffy Donation Page</a>
+            <button id="shareBtn" class="btn btn-share">Copy Shareable Link</button>
+
+            <p class="footer-note">
+                <strong>Coach Note:</strong> To update your featured photo or team description on the live Zeffy fundraiser site, please email your new assets to <strong><a href="mailto:it@valleydeoroll.com">IT@valleydeoroll.com</a></strong>.
+            </p>
+        </article>
+    </div>
+</div>
+
+<script>
+    const data = [
+        { "level": "T-Ball", "name": "1978 Gold Padres", "coach": "Coach: Juan", "imageUrl": "T_Ball_1978_Gold_Padres_Coach_Juan.png", "link": "https://www.zeffy.com/en-US/team/t-ball-1978-gold-padres-coach-juan" },
+        { "level": "T-Ball", "name": "1983 Road Brown", "coach": "Coach: Brian", "imageUrl": "T_Ball_1983_Road_Brown_Coach_Brian.png", "link": "https://www.zeffy.com/en-US/team/t-ball-1983-road-brown-coach-brian" },
+        { "level": "T-Ball", "name": "2020 Home Brown Padres", "coach": "Coach: Chris", "imageUrl": "T_Ball_2020_Home_Brown_Padres_Coach_Chris.png", "link": "https://www.zeffy.com/en-US/team/2020-home-brown-padres-coach-clark" },
+        { "level": "T-Ball", "name": "Camo Padres", "coach": "Coach: David", "imageUrl": "T_Ball_Camo_Padres_Coach_David.png", "link": "https://www.zeffy.com/en-US/team/t-ball-camo-padres-coach-david" },
+        { "level": "Caps", "name": "1978 Home White Padres", "coach": "Coach: Mario", "imageUrl": "Caps_1978_Home_White_Padres_Coach_Mario.png", "link": "https://www.zeffy.com/en-US/team/1978-home-white-padres-coach-mario" },
+        { "level": "Caps", "name": "Brown 2020 Padres", "coach": "Coach: Richard", "imageUrl": "Caps_Brown_2020_Padres_Coach_Richard.png", "link": "https://www.zeffy.com/en-US/team/brown-2020-padres-coach-richard" },
+        { "level": "Caps", "name": "Camo Padres", "coach": "Coach: Brad", "imageUrl": "Caps_Camo_Padres_Coach_Brad.png", "link": "https://www.zeffy.com/en-US/team/camo-padres-coach-brad" },
+        { "level": "Caps", "name": "Gold 1978 Padres", "coach": "Coach: Juan", "imageUrl": "Caps_Gold_1978_Padres_Coach_Juan.png", "link": "https://www.zeffy.com/en-US/team/gold-1978-padres-coach-juan" },
+        { "level": "Minors", "name": "Blue Jays", "coach": "Coach: Ryan", "imageUrl": "Minors_Blue_Jays_Coach_Ryan.png", "link": "https://www.zeffy.com/en-US/team/minors-blue-jays-coach-ryan" },
+        { "level": "Minors", "name": "Braves", "coach": "Coach: Rob", "imageUrl": "Minors_Braves_Coach_Rob.png", "link": "https://www.zeffy.com/en-US/team/minors-braves-coach-rob-2" },
+        { "level": "Minors", "name": "Dodgers", "coach": "Coach: Jon", "imageUrl": "Minors_Dodgers_Coach_Jon.png", "link": "https://www.zeffy.com/en-US/team/minors-dodgers-coach-jon" },
+        { "level": "Minors", "name": "Rangers", "coach": "Coach: Tom", "imageUrl": "Minors_Rangers_Coach_Tom.png", "link": "https://www.zeffy.com/en-US/team/minors-rangers-coach-tom" },
+        { "level": "Minors", "name": "Royals", "coach": "Coach: Eric", "imageUrl": "Minors_Royals_Coach_Eric.png", "link": "https://www.zeffy.com/en-US/team/minors-royals-coach-eric" },
+        { "level": "Majors", "name": "Phillies", "coach": "Coach: Doug", "imageUrl": "Majors_Phillies_Coach_Doug.png", "link": "https://www.zeffy.com/en-US/team/majors-phillies-coach-doug" },
+        { "level": "Majors", "name": "Pirates", "coach": "Coach: Aurelio", "imageUrl": "Majors_Pirates_Coach_Aurelio.png", "link": "https://www.zeffy.com/en-US/team/majors-pirates-coach-aurelio-2" },
+        { "level": "Majors", "name": "Tigers", "coach": "Coach: Brian", "imageUrl": "Majors_Tigers_Coach_Brian.png", "link": "https://www.zeffy.com/en-US/team/majors-tigers-coach-brian-2" },
+        { "level": "Majors", "name": "White Sox", "coach": "Coach: Ryan", "imageUrl": "Majors_White_Sox_Coach_Ryan.png", "link": "https://www.zeffy.com/en-US/team/majors-white-sox-coach-ryan-5" },
+        { "level": "Intermediate", "name": "VDO Intermediates", "coach": "Coach: Chad", "imageUrl": "VDO_Intermediates_Coach_Chad.png", "link": "https://www.zeffy.com/en-US/team/vdo-intermediates-coach-chad-3" }
+    ];
+
+    const searchInput = document.getElementById('searchInput');
+    const searchWrapper = document.getElementById('searchWrapper');
+    const suggestionsPanel = document.getElementById('suggestions');
+    const resultCard = document.getElementById('resultCard');
+    const shareBtn = document.getElementById('shareBtn');
+
+    function getSortRank(level) {
+        const ranks = { "t-ball": 1, "caps": 2, "minors": 3, "majors": 4, "intermediate": 5 };
+        return ranks[level.toLowerCase()] || 6;
+    }
+
+    function getPillHTML(level) {
+        const l = level.toLowerCase();
+        let cssClass = l === "t-ball" ? "pill-t-ball" : l === "caps" ? "pill-caps" : l === "minors" ? "pill-minors" : l === "majors" ? "pill-majors" : "pill-intermediate";
+        return `<span class="pill ${cssClass}">${level}</span>`;
+    }
+
+    window.onload = () => renderList("");
+
+    function renderList(filter) {
+        suggestionsPanel.innerHTML = '';
+        const filtered = data.filter(item => 
+            item.name.toLowerCase().includes(filter.toLowerCase()) || 
+            item.coach.toLowerCase().includes(filter.toLowerCase()) ||
+            item.level.toLowerCase().includes(filter.toLowerCase())
+        ).sort((a, b) => getSortRank(a.level) - getSortRank(b.level) || a.name.localeCompare(b.name));
+        
+        filtered.forEach(item => {
+            const div = document.createElement('div');
+            div.className = 'suggestion-item';
+            div.innerHTML = `${getPillHTML(item.level)}<span class="item-title">${item.name}</span><span class="item-subtitle">${item.coach}</span>`;
+            div.onclick = () => selectItem(item);
+            suggestionsPanel.appendChild(div);
+        });
+    }
+
+    searchInput.addEventListener('input', (e) => renderList(e.target.value));
+
+    function selectItem(item) {
+        searchWrapper.classList.add('searching-hidden');
+        suggestionsPanel.style.display = 'none';
+        resultCard.style.display = 'block';
+
+        document.getElementById('pillContainer').innerHTML = getPillHTML(item.level) + '  ' + getPillHTML(item.coach);
+        document.getElementById('itemName').innerText = item.name;
+        // document.getElementById('itemSubtitle').innerText = item.coach;
+        
+        const vPath = 'images/' + item.imageUrl;
+        const hPath = 'images/horizontal/' + item.imageUrl;
+        document.getElementById('itemImage').src = vPath;
+        document.getElementById('itemHorizontalImage').src = hPath;
+        document.getElementById('linkBtn').href = item.link;
+
+        document.getElementById('itemImage').onclick = () => window.open(vPath, '_blank');
+        document.getElementById('itemHorizontalImage').onclick = () => window.open(hPath, '_blank');
+
+        shareBtn.onclick = () => {
+            const dummy = document.createElement("textarea");
+            document.body.appendChild(dummy);
+            dummy.value = item.link;
+            dummy.select();
+            document.execCommand("copy");
+            document.body.removeChild(dummy);
+            shareBtn.innerText = "✓ Link Copied!";
+            shareBtn.classList.add('success');
+            setTimeout(() => { shareBtn.innerText = "Copy Shareable Link"; shareBtn.classList.remove('success'); }, 2000);
+        };
+        window.scrollTo(0, 0);
+    }
+
+    function resetUI() {
+        searchWrapper.classList.remove('searching-hidden');
+        suggestionsPanel.style.display = 'block';
+        resultCard.style.display = 'none';
+        searchInput.value = '';
+        renderList("");
+    }
+</script>
+</body>
+</html>
